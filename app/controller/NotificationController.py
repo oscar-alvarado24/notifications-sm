@@ -149,7 +149,7 @@ def delete_notification(id):
         }), 500
 
 # Endpoint for update read status  
-@app.route('/notifications', methods=['PUT']) 
+@app.route('/notifications', methods=['PATCH']) 
 def update_notification_status(): 
     try:
         data = request.get_json()

@@ -48,18 +48,7 @@ class NotificationRepository:
             if results is None:
                 raise NotificationNotFoundException(Constants.NOT_FIND_NOTIFICATIONS_FOR_USER.format(user_id=user_id))
             
-            notifications = []
-            for row in results:
-                message_content = row[2].read() if row[2] else None
-                notification_dict = {
-                    'id': row[0],
-                    'user_id': row[1],
-                    'message': message_content,
-                    'read': row[3] == 'read'
-                }
-                notifications.append(notification_dict)
-            
-            return notifications
+            return self.get_notifications_dict(results)
         except NotificationNotFoundException as error:
             raise error
         except oracledb.Error as error:
@@ -83,7 +72,7 @@ class NotificationRepository:
         """
         cursor = self.cursor()
         try:
-            sql = """SELECT id, message, status 
+            sql = """SELECT * 
                      FROM notifications 
                      WHERE user_id = :user_id AND status = 'unread'
                      ORDER BY id DESC"""
@@ -94,15 +83,8 @@ class NotificationRepository:
             
             if results is None:
                 raise NotificationNotFoundException(Constants.NOT_FIND_NOTIFICATIONS_FOR_USER.format(user_id=user_id))
-            notifications = []
-            for row in results:
-                notification_dict = {
-                    'id': row[0],
-                    'message': row[1],
-                    'read': row[2] == 'read'
-                }
-                notifications.append(notification_dict)
-            return notifications
+            
+            return self.get_notifications_dict(results)
         
         except NotificationNotFoundException as error:
             raise error
@@ -224,3 +206,30 @@ class NotificationRepository:
             raise UpdateReadStatusException(Constants.UPDATE_READ_STATUS_ERROR)
         finally:
             cursor.close()
+
+    @staticmethod
+    def get_notifications_dict(results: List[tuple]) -> List[Dict[str, Any]]:
+        """
+        Convert a list of tuples to a list of dictionaries with notification data.
+        
+        Args:
+            results: List of tuples with notification data
+
+        Returns:
+            List of dictionaries with notification data
+        """
+        notifications = []
+        for row in results:
+            message_content = row[2].read() if row[2] else None
+            notification_dict = {
+                'id': row[0],
+                'user_id': row[1],
+                'message': message_content,
+                'read': row[3] == 'read'
+            }
+            notifications.append(notification_dict)
+        
+        return notifications
+
+            
+        

@@ -74,7 +74,9 @@ class NotificationService:
             notification_dicts = self.repository.get_notification_with_status_unread(user_id)
 
             return [Notification.from_dict(notification_dict) for notification_dict in notification_dicts]
-        except NotificationNotFoundException | GetNotificationsException as exception:
+        except NotificationNotFoundException as exception:
+            raise exception
+        except GetNotificationsException as exception:
             raise exception
         except Exception as exception:
             print(Constants.GET_NOTIFICATION_ERROR.format(user_id=user_id), exception)
